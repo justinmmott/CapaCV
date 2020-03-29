@@ -11,6 +11,7 @@ class PinInformation {
   String address;
   double rating;
   Map<String, dynamic> hours;
+  String type;
 
   PinInformation.fromDb(DocumentSnapshot place) {
     this.picture = place['picture'];
@@ -21,8 +22,11 @@ class PinInformation {
     this.maxCapacity = place['maxCapacity'];
     this.currCapacity = place['currCapacity'];
     this.address = place['address'];
-    this.rating = (place['rating'] is double) ? place['rating'] : place['rating'].toDouble();
+    this.rating = (place['rating'] is double)
+        ? place['rating']
+        : place['rating'].toDouble();
     this.hours = place['hours'];
+    this.type = place['type'];
   }
 
   @override
