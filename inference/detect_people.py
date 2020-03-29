@@ -117,19 +117,20 @@ def show_inference(model, image_path):
       line_thickness=8)
   Image.fromarray(image_np).save("out_" + image_name)
 
-# If you want to test the code with your images, just add path to the images to the TEST_IMAGE_PATHS.
-PATH_TO_TEST_IMAGES_DIR = pathlib.Path(tf_dir/'models/research/object_detection/test_images')
-TEST_IMAGE_PATHS = sorted(list(PATH_TO_TEST_IMAGES_DIR.glob("*.jpg")))
-print("Test image paths: ", TEST_IMAGE_PATHS)
+if __name__ == '__main__':
+    # If you want to test the code with your images, just add path to the images to the TEST_IMAGE_PATHS.
+    PATH_TO_TEST_IMAGES_DIR = pathlib.Path(tf_dir/'models/research/object_detection/test_images')
+    TEST_IMAGE_PATHS = sorted(list(PATH_TO_TEST_IMAGES_DIR.glob("*.jpg")))
+    print("Test image paths: ", TEST_IMAGE_PATHS)
 
-model_name = 'ssd_mobilenet_v1_coco_2018_01_28'
-detection_model = load_model(pathlib.Path.cwd().parent/'models'/model_name/'saved_model')
+    model_name = 'ssd_mobilenet_v1_coco_2018_01_28'
+    detection_model = load_model(pathlib.Path.cwd().parent/'models'/model_name/'saved_model')
 
-print(detection_model.inputs)
-print(detection_model.output_dtypes)
-print(detection_model.output_shapes)
+    print(detection_model.inputs)
+    print(detection_model.output_dtypes)
+    print(detection_model.output_shapes)
 
-for image_path in TEST_IMAGE_PATHS:
-    res = analyze_single_image(detection_model, np.array(Image.open(image_path)))
-    print("Num people: ", res)
-    # show_inference(detection_model, image_path)
+    for image_path in TEST_IMAGE_PATHS:
+        res = analyze_single_image(detection_model, np.array(Image.open(image_path)))
+        print("Num people: ", res)
+        # show_inference(detection_model, image_path)
