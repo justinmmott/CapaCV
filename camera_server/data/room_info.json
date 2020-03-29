@@ -1,0 +1,11 @@
+{
+    "currCapacity": 0,
+    "maxCapacity": 7,
+    "address": "400 W Rosemary St, Chapel Hill, NC 27516",
+    "rating": 3.5,
+    "uid": "29H9MSDxzNiRUfW15tQW",
+    "picture": "CmRaAAAA8YPDWlf_1Oq_ZGDxK3Z3rB-HWYneMHS3ofU8vSP4R1He2zKd8-3r6mQsAEauDO4r550n5aPuGDTp-wNs1UBM4s5WuF_cFz04-4VcY0Lb5nmkFoR4u7Cxq-iU3JeGIOoyEhBXIS6eamYFka06VtFJj_x7GhQzGZE5vfGccCVshqc8wNjYoPlidg",
+    "name": "Living Room",
+    "hours": {"open": 530, "close": 1430},
+    "type" : "Study"
+}

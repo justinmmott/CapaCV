@@ -4,5 +4,6 @@ pubspec.lock
 .dart_tool/*
 .packages
 build/*
-camera_server/serviceacct.json
 /.vscode/*
+camera_server/firebaseacct.json
+camera_server/gmapsacct.json
