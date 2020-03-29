@@ -121,13 +121,11 @@ class _HomeScreenState extends State<HomeScreen> {
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.grey,
-                                blurRadius:
-                                    20.0, 
-                                spreadRadius:
-                                    -3.0, 
+                                blurRadius: 20.0,
+                                spreadRadius: -3.0,
                                 offset: Offset(
-                                  5, 
-                                  5, 
+                                  5,
+                                  5,
                                 ),
                               ),
                             ],
@@ -163,21 +161,25 @@ class _HomeScreenState extends State<HomeScreen> {
     _controller.setMapStyle(_mapStyle);
   }
 
+  Marker makeMarker(int i) {
+    return Marker(
+      markerId: MarkerId(pins[i].locationName),
+      position: pins[i].location,
+      onTap: () {
+        setState(() {
+          currentPin = i;
+          pinPillPosition = 20;
+        });
+      },
+      icon: sourceIcon,
+    );
+  }
+
+  bool keepMarker(int i) {}
+
   void setMapPins(List<PinInformation> pins) {
     for (int i = 0; i < pins.length; i++) {
-      _markers.add(
-        Marker(
-          markerId: MarkerId(pins[i].locationName),
-          position: pins[i].location,
-          onTap: () {
-            setState(() {
-              currentPin = i;
-              pinPillPosition = 20;
-            });
-          },
-          icon: sourceIcon,
-        ),
-      );
+      _markers.add(makeMarker(i));
     }
   }
 
