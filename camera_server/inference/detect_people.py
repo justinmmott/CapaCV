@@ -44,9 +44,8 @@ def load_model(model_dir):
     model = model.signatures['serving_default']
     return model
 
-def analyze_single_image(model, image_path):
+def analyze_single_image(model, image):
     num_people = 0
-    image = np.array(Image.open(image_path))
     with sess.as_default():
         image = np.asarray(image)
         input_tensor = tf.convert_to_tensor(image)
@@ -62,8 +61,7 @@ def analyze_single_image(model, image_path):
                 num_people += 1
     return num_people
 
-def run_inference_for_single_image(model, image_path):
-    image = np.array(Image.open(image_path))
+def run_inference_for_single_image(model, image):
     with sess.as_default():
         image = np.asarray(image)
         input_tensor = tf.convert_to_tensor(image)
@@ -111,13 +109,17 @@ detection_model = load_model(pathlib.Path.cwd().parent/'models'/model_name/'save
 
 ########## Executed code ######################
 
-def count_people(image_path):
-    return analyze_single_image(detection_model, image_path)
+def count_people_from_path(image_path):
+    image_np = np.array(Image.open(image_path))
+    return analyze_single_image(detection_model, image_np)
+
+def count_people(image):
+    return analyze_single_image(detection_model, image)
 
 if __name__ == '__main__':
     PATH_TO_TEST_IMAGES_DIR = pathlib.Path(tf_dir/'models/research/object_detection/test_images')
     TEST_IMAGE_PATHS = sorted(list(PATH_TO_TEST_IMAGES_DIR.glob("*.jpg")))
     print("Test image paths: ", TEST_IMAGE_PATHS)
     for image_path in TEST_IMAGE_PATHS:
-        print("Num people: ", count_people(image_path))
+        print("Num people: ", count_people_from_path(image_path))
         # show_inference(detection_model, image_path)
