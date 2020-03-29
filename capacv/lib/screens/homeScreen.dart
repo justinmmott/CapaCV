@@ -63,7 +63,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     pins = new List<PinInformation>();
 
-  
     QuerySnapshot x = await _db.collection('places').getDocuments();
     for (DocumentSnapshot doc in x.documents) {
       pins.add(PinInformation.fromDb(doc));
@@ -91,6 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
             return Stack(
               children: <Widget>[
                 GoogleMap(
+                  myLocationButtonEnabled: false,
                   myLocationEnabled: true,
                   mapToolbarEnabled: false,
                   tiltGesturesEnabled: false,
@@ -105,25 +105,33 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
                 MapPinPillComponent(
-                  pinPillPosition: pinPillPosition,
-                  pins: pins,
-                  currentPin: currentPin
+                    pinPillPosition: pinPillPosition,
+                    pins: pins,
+                    currentPin: currentPin),
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 40),
+                    child: SizedBox(
+                      height: 80,
+                      width: 350,
+                      child: Center(
+                        child: SearchBar(
+                          iconActiveColor: Colors.black87,
+                          onSearch: _search,
+                          onItemFound: _found,
+                          textStyle: TextStyle(
+                            color: Colors.black87,
+                          ),
+                          searchBarStyle: SearchBarStyle(
+                            backgroundColor: Colors.grey,
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-                // Padding(
-                //   padding: const EdgeInsets.fromLTRB(20, 40, 20, 0),
-                //   child: SearchBar(
-                //     iconActiveColor: Colors.black87,
-                //     onSearch: _search,
-                //     onItemFound: _found,
-                //     textStyle: TextStyle(
-                //       color: Colors.black87,
-                //     ),
-                //     searchBarStyle: SearchBarStyle(
-                //       backgroundColor: Colors.grey,
-                //       borderRadius: BorderRadius.circular(15),
-                //     ),
-                //   ),
-                // ),
               ],
             );
           }
