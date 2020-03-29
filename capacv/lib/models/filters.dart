@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:capacv/models/pinPillInfo.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FilterView extends StatefulWidget {

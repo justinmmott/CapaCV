@@ -14,7 +14,7 @@ class PinInformation {
   String type;
 
   PinInformation.fromDb(DocumentSnapshot place) {
-    this.picture = place['picture'];
+    //this.picture = place['picture'];
     this.location =
         LatLng(place['location'].latitude, place['location'].longitude);
     this.locationName = place['name'];
