@@ -107,7 +107,7 @@ def show_inference(model, image_path):
 ########## Set up model #############
 PERSON_CLASS = 1
 model_name = 'ssd_mobilenet_v1_coco_2018_01_28'
-detection_model = load_model(pathlib.Path.cwd()/'models'/model_name/'saved_model')
+detection_model = load_model(pathlib.Path.cwd().parent/'models'/model_name/'saved_model')
 
 ########## Executed code ######################
 
