@@ -30,6 +30,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String _mapStyle;
 
+  List<String> placeNames;
+
   @override
   void initState() {
     super.initState();
@@ -140,8 +142,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             );
           } else {
+            
             return StreamBuilder<QuerySnapshot>(
-                stream: _db.collection('places').snapshots(),
+                stream: _db.collection('places').where('type', isEqualTo: 'Cafe').snapshots(),
                 builder: (context, snapshot) {
                   if (!initLocal.hasData) {
                     return Center(
