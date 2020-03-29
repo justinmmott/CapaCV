@@ -38,6 +38,7 @@ dependencies:
   url_launcher: any
   font_awesome_flutter: any
   flutter_rating_bar: any
+  flappy_search_bar: 1.4.1
 
 dev_dependencies:
   build_runner: ^1.2.7

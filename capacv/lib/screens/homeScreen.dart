@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flappy_search_bar/search_bar_style.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -6,6 +7,7 @@ import 'package:capacv/models/pinPillInfo.dart';
 import 'package:capacv/models/mapPinPillComponent.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:location/location.dart';
+import 'package:flappy_search_bar/flappy_search_bar.dart';
 // import 'package:capacv/models/locations.dart' as locations;
 
 const double CAMERA_ZOOM = 15;
@@ -40,7 +42,8 @@ class _HomeScreenState extends State<HomeScreen> {
     location = new Location();
   }
 
-  PinInformation currentlySelectedPin;
+  List<PinInformation> pins;
+  int currentPin = 0;
 
   Future<CameraPosition> setSourceAndDestinationIcons() async {
     sourceIcon = await BitmapDescriptor.fromAssetImage(
@@ -54,17 +57,17 @@ class _HomeScreenState extends State<HomeScreen> {
       zoom: CAMERA_ZOOM,
       bearing: CAMERA_BEARING,
       tilt: CAMERA_TILT,
-      target: LatLng(currentLocation.latitude, currentLocation.longitude),
+      //target: LatLng(currentLocation.latitude, currentLocation.longitude),
+      target: LatLng(34.0749, -118.4415),
     );
 
-    List<PinInformation> pins = new List<PinInformation>();
+    pins = new List<PinInformation>();
 
-    PinInformation pin = PinInformation.fromDb(
-        await _db.collection('places').document('29H9MSDxzNiRUfW15tQW').get());
-
-    currentlySelectedPin = pin;
-
-    pins.add(pin);
+  
+    QuerySnapshot x = await _db.collection('places').getDocuments();
+    for (DocumentSnapshot doc in x.documents) {
+      pins.add(PinInformation.fromDb(doc));
+    }
 
     setMapPins(pins);
 
@@ -97,14 +100,30 @@ class _HomeScreenState extends State<HomeScreen> {
                   onMapCreated: onMapCreated,
                   onTap: (LatLng location) {
                     setState(() {
-                      pinPillPosition = -100;
+                      pinPillPosition = -150;
                     });
                   },
                 ),
                 MapPinPillComponent(
                   pinPillPosition: pinPillPosition,
-                  currentlySelectedPin: currentlySelectedPin,
-                )
+                  pins: pins,
+                  currentPin: currentPin
+                ),
+                // Padding(
+                //   padding: const EdgeInsets.fromLTRB(20, 40, 20, 0),
+                //   child: SearchBar(
+                //     iconActiveColor: Colors.black87,
+                //     onSearch: _search,
+                //     onItemFound: _found,
+                //     textStyle: TextStyle(
+                //       color: Colors.black87,
+                //     ),
+                //     searchBarStyle: SearchBarStyle(
+                //       backgroundColor: Colors.grey,
+                //       borderRadius: BorderRadius.circular(15),
+                //     ),
+                //   ),
+                // ),
               ],
             );
           }
@@ -116,18 +135,17 @@ class _HomeScreenState extends State<HomeScreen> {
   void onMapCreated(GoogleMapController controller) {
     _controller = controller;
     _controller.setMapStyle(_mapStyle);
-     
   }
 
   void setMapPins(List<PinInformation> pins) {
-    for (PinInformation pin in pins) {
+    for (int i = 0; i < pins.length; i++) {
       _markers.add(
         Marker(
-          markerId: MarkerId(pin.locationName),
-          position: pin.location,
+          markerId: MarkerId(pins[i].locationName),
+          position: pins[i].location,
           onTap: () {
             setState(() {
-              currentlySelectedPin = pin;
+              currentPin = i;
               pinPillPosition = 20;
             });
           },
@@ -135,5 +153,14 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     }
+  }
+
+  Future<List<dynamic>> _search(String searchQuery) {
+    List<String> a = [''];
+    return Future<List<String>>.value(a);
+  }
+
+  Widget _found(dynamic, int) {
+    return Container();
   }
 }

@@ -21,7 +21,7 @@ class PinInformation {
     this.maxCapacity = place['maxCapacity'];
     this.currCapacity = place['currCapacity'];
     this.address = place['address'];
-    this.rating = place['rating'];
+    this.rating = (place['rating'] is double) ? place['rating'] : place['rating'].toDouble();
     this.hours = place['hours'];
   }
 

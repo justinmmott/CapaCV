@@ -6,8 +6,9 @@ import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 class MapPinPillComponent extends StatefulWidget {
   final double pinPillPosition;
-  final PinInformation currentlySelectedPin;
-  MapPinPillComponent({this.pinPillPosition, this.currentlySelectedPin});
+  final List<PinInformation> pins;
+  final int currentPin;
+  MapPinPillComponent({this.pinPillPosition, this.pins, this.currentPin});
 
   @override
   State<StatefulWidget> createState() => MapPinPillComponentState();
@@ -46,8 +47,8 @@ class MapPinPillComponentState extends State<MapPinPillComponent> {
                 width: 55,
                 height: 55,
                 child: ClipOval(
-                  child: Image.network(
-                    widget.currentlySelectedPin.picture,
+                  child: (widget.pins[widget.currentPin].picture == "0000") ? Container() : Image.network(
+                    buildPhotoURL(widget.pins[widget.currentPin].picture),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -66,7 +67,7 @@ class MapPinPillComponentState extends State<MapPinPillComponent> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: <Widget>[
                             Text(
-                              widget.currentlySelectedPin.locationName,
+                              widget.pins[widget.currentPin].locationName,
                               style: TextStyle(
                                   fontSize: 16, color: Colors.lightBlue),
                             ),
@@ -74,7 +75,7 @@ class MapPinPillComponentState extends State<MapPinPillComponent> {
                               padding: const EdgeInsets.only(right: 4),
                               child: RatingBarIndicator(
                                 itemSize: 18,
-                                rating: widget.currentlySelectedPin.rating,
+                                rating: widget.pins[widget.currentPin].rating,
                                 itemBuilder: (context, _) => Icon(
                                   Icons.star,
                                   color: Colors.amber,
@@ -87,7 +88,7 @@ class MapPinPillComponentState extends State<MapPinPillComponent> {
                       Container(
                         padding: EdgeInsets.fromLTRB(0, 1, 0, 1),
                         child: Text(
-                          'Capacity: ${widget.currentlySelectedPin.currCapacity}/${widget.currentlySelectedPin.maxCapacity}',
+                          'Capacity: ${widget.pins[widget.currentPin].currCapacity}/${widget.pins[widget.currentPin].maxCapacity}',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey,
@@ -97,7 +98,7 @@ class MapPinPillComponentState extends State<MapPinPillComponent> {
                       Container(
                         padding: EdgeInsets.fromLTRB(0, 1, 0, 1),
                         child: Text(
-                          "Hours: ${getTime(widget.currentlySelectedPin.hours['open'])} - ${getTime(widget.currentlySelectedPin.hours['close'])}",
+                          "Hours: ${getTime(widget.pins[widget.currentPin].hours['open'])} - ${getTime(widget.pins[widget.currentPin].hours['close'])}",
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey,
@@ -109,7 +110,7 @@ class MapPinPillComponentState extends State<MapPinPillComponent> {
                 ),
               ),
               Container(
-               // color: Colors.red,
+                // color: Colors.red,
                 width: 75,
                 height: 60,
                 child: Column(
@@ -123,7 +124,8 @@ class MapPinPillComponentState extends State<MapPinPillComponent> {
                         size: 40,
                       ),
                       onPressed: () {
-                        launch('http://www.google.com/maps/place/${widget.currentlySelectedPin.location.latitude},${widget.currentlySelectedPin.location.longitude}');
+                        launch(
+                            'http://www.google.com/maps/place/${widget.pins[widget.currentPin].location.latitude},${widget.pins[widget.currentPin].location.longitude}');
                       },
                     ),
                   ],
@@ -156,5 +158,9 @@ class MapPinPillComponentState extends State<MapPinPillComponent> {
     }
 
     return res;
+  }
+
+  String buildPhotoURL(String photoReference) {
+    return "https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference=${photoReference}&key=AIzaSyCQ4lOkjPK9YocNZcYrRbCeavQRwvLYOwA";
   }
 }
