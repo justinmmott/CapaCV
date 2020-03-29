@@ -1,17 +1,32 @@
-import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class PinInformation {
-  String pinPath;
-  String avatarPath;
+  String picture;
   LatLng location;
   String locationName;
-  Color labelColor;
-  PinInformation({
-    this.pinPath,
-    this.avatarPath,
-    this.location,
-    this.locationName,
-    this.labelColor,
-  });
+  String uid;
+  int maxCapacity;
+  int currCapacity;
+  String address;
+  double rating;
+  Map<String, dynamic> hours;
+
+  PinInformation.fromDb(DocumentSnapshot place) {
+    this.picture = place['picture'];
+    this.location =
+        LatLng(place['location'].latitude, place['location'].longitude);
+    this.locationName = place['name'];
+    this.uid = place['uid'];
+    this.maxCapacity = place['maxCapacity'];
+    this.currCapacity = place['currCapacity'];
+    this.address = place['address'];
+    this.rating = place['rating'];
+    this.hours = place['hours'];
+  }
+
+  @override
+  String toString() {
+    return "Name: $locationName, uid: $uid";
+  }
 }

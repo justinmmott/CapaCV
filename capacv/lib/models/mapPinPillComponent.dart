@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:capacv/models/pinPillInfo.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class MapPinPillComponent extends StatefulWidget {
   final double pinPillPosition;
@@ -43,8 +45,8 @@ class MapPinPillComponentState extends State<MapPinPillComponent> {
                 width: 50,
                 height: 50,
                 child: ClipOval(
-                  child: Image.asset(
-                    widget.currentlySelectedPin.avatarPath,
+                  child: Image.network(
+                    widget.currentlySelectedPin.picture,
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -58,16 +60,16 @@ class MapPinPillComponentState extends State<MapPinPillComponent> {
                     children: <Widget>[
                       Text(
                         widget.currentlySelectedPin.locationName,
-                        style: TextStyle(
-                            color: widget.currentlySelectedPin.labelColor),
+                        style: TextStyle(color: Colors.lightBlue),
                       ),
                       Text(
-                        'Latitude: ${widget.currentlySelectedPin.location.latitude.toString()}',
+                        'Capacity: ${widget.currentlySelectedPin.currCapacity}/${widget.currentlySelectedPin.maxCapacity}',
                         style: TextStyle(fontSize: 12, color: Colors.grey),
                       ),
                       Text(
-                        'Longitude: ${widget.currentlySelectedPin.location.longitude.toString()}',
+                        widget.currentlySelectedPin.address,
                         style: TextStyle(fontSize: 12, color: Colors.grey),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
@@ -75,12 +77,14 @@ class MapPinPillComponentState extends State<MapPinPillComponent> {
               ),
               Padding(
                 padding: EdgeInsets.all(15),
-                child: Image.asset(
-                  widget.currentlySelectedPin.pinPath,
-                  width: 50,
-                  height: 50,
+                child: IconButton(
+                  icon: Icon(FontAwesomeIcons.directions, color: Colors.lightBlue),
+                  onPressed: () {
+                    launch(
+                        "google.navigation:q=${widget.currentlySelectedPin.location.latitude},${widget.currentlySelectedPin.location.longitude}");
+                  },
                 ),
-              )
+              ),
             ],
           ),
         ),
