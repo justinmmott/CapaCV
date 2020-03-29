@@ -8,7 +8,6 @@ import 'package:capacv/models/mapPinPillComponent.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:location/location.dart';
 import 'package:flappy_search_bar/flappy_search_bar.dart';
-// import 'package:capacv/models/locations.dart' as locations;
 
 const double CAMERA_ZOOM = 15;
 const double CAMERA_TILT = 0;
@@ -112,7 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
       'assets/map-marker-yellow-coffee.png',
     );
 
-    LocationData currentLocation = await location.getLocation();
+    //LocationData currentLocation = await location.getLocation();
 
     CameraPosition initialLocation = CameraPosition(
       zoom: CAMERA_ZOOM,
@@ -123,13 +122,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     pins = new List<PinInformation>();
-
-    QuerySnapshot x = await _db.collection('places').getDocuments();
-    for (DocumentSnapshot doc in x.documents) {
-      pins.add(PinInformation.fromDb(doc));
-    }
-
-    setMapPins(pins);
 
     return initialLocation;
   }
@@ -148,69 +140,86 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             );
           } else {
-            return Stack(
-              children: <Widget>[
-                GoogleMap(
-                  myLocationButtonEnabled: false,
-                  myLocationEnabled: true,
-                  mapToolbarEnabled: false,
-                  tiltGesturesEnabled: false,
-                  compassEnabled: false,
-                  markers: _markers,
-                  initialCameraPosition: initLocal.data,
-                  onMapCreated: onMapCreated,
-                  onTap: (LatLng location) {
-                    setState(() {
-                      pinPillPosition = -150;
-                    });
-                  },
-                ),
-                MapPinPillComponent(
-                  pinPillPosition: pinPillPosition,
-                  currentPin: currentPin,
-                ),
-                Align(
-                  alignment: Alignment.topCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 40),
-                    child: SizedBox(
-                      height: 200,
-                      width: 350,
-                      child: Center(
-                        child: Container(
-                          decoration: new BoxDecoration(
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey,
-                                blurRadius: 20.0,
-                                spreadRadius: -3.0,
-                                offset: Offset(
-                                  5,
-                                  5,
+            return StreamBuilder<QuerySnapshot>(
+                stream: _db.collection('places').snapshots(),
+                builder: (context, snapshot) {
+                  if (!initLocal.hasData) {
+                    return Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            Theme.of(context).primaryColor),
+                      ),
+                    );
+                  } else {
+                    for (DocumentSnapshot doc in snapshot.data.documents) {
+                      pins.add(PinInformation.fromDb(doc));
+                    }
+                    setMapPins(pins);
+                    return Stack(
+                      children: <Widget>[
+                        GoogleMap(
+                          myLocationButtonEnabled: false,
+                          myLocationEnabled: true,
+                          mapToolbarEnabled: false,
+                          tiltGesturesEnabled: false,
+                          compassEnabled: false,
+                          markers: _markers,
+                          initialCameraPosition: initLocal.data,
+                          onMapCreated: onMapCreated,
+                          onTap: (LatLng location) {
+                            setState(() {
+                              pinPillPosition = -150;
+                            });
+                          },
+                        ),
+                        MapPinPillComponent(
+                          pinPillPosition: pinPillPosition,
+                          currentPin: currentPin,
+                        ),
+                        Align(
+                          alignment: Alignment.topCenter,
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 40),
+                            child: SizedBox(
+                              height: 200,
+                              width: 350,
+                              child: Center(
+                                child: Container(
+                                  decoration: new BoxDecoration(
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey,
+                                        blurRadius: 20.0,
+                                        spreadRadius: -3.0,
+                                        offset: Offset(
+                                          5,
+                                          5,
+                                        ),
+                                      ),
+                                    ],
+                                    borderRadius: new BorderRadius.circular(15),
+                                  ),
+                                  child: SearchBar<String>(
+                                    iconActiveColor: Colors.black87,
+                                    onSearch: _search,
+                                    onItemFound: _found,
+                                    textStyle: TextStyle(
+                                      color: Colors.black87,
+                                    ),
+                                    searchBarStyle: SearchBarStyle(
+                                      backgroundColor: Colors.white,
+                                      borderRadius: BorderRadius.circular(15),
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ],
-                            borderRadius: new BorderRadius.circular(15),
-                          ),
-                          child: SearchBar<String>(
-                            iconActiveColor: Colors.black87,
-                            onSearch: _search,
-                            onItemFound: _found,
-                            textStyle: TextStyle(
-                              color: Colors.black87,
-                            ),
-                            searchBarStyle: SearchBarStyle(
-                              backgroundColor: Colors.white,
-                              borderRadius: BorderRadius.circular(15),
                             ),
                           ),
                         ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            );
+                      ],
+                    );
+                  }
+                });
           }
         },
       ),
@@ -275,9 +284,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool keepMarker(int i) {}
 
   void setMapPins(List<PinInformation> pins) {
-    print("here is for loop");
     for (int i = 0; i < pins.length; i++) {
-      print("in for loopp $i");
       _markers.add(makeMarker(i));
     }
   }
