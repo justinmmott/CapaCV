@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:capacv/models/pinPillInfo.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 class MapPinPillComponent extends StatefulWidget {
   final double pinPillPosition;
@@ -24,7 +25,7 @@ class MapPinPillComponentState extends State<MapPinPillComponent> {
         alignment: Alignment.bottomCenter,
         child: Container(
           margin: EdgeInsets.all(20),
-          height: 70,
+          height: 85,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.all(Radius.circular(50)),
             color: Colors.white,
@@ -42,8 +43,8 @@ class MapPinPillComponentState extends State<MapPinPillComponent> {
             children: <Widget>[
               Container(
                 margin: EdgeInsets.only(left: 10),
-                width: 50,
-                height: 50,
+                width: 55,
+                height: 55,
                 child: ClipOval(
                   child: Image.network(
                     widget.currentlySelectedPin.picture,
@@ -58,31 +59,74 @@ class MapPinPillComponentState extends State<MapPinPillComponent> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      Text(
-                        widget.currentlySelectedPin.locationName,
-                        style: TextStyle(color: Colors.lightBlue),
+                      Container(
+                        padding: EdgeInsets.fromLTRB(0, 1, 0, 1),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: <Widget>[
+                            Text(
+                              widget.currentlySelectedPin.locationName,
+                              style: TextStyle(
+                                  fontSize: 16, color: Colors.lightBlue),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(right: 4),
+                              child: RatingBarIndicator(
+                                itemSize: 18,
+                                rating: widget.currentlySelectedPin.rating,
+                                itemBuilder: (context, _) => Icon(
+                                  Icons.star,
+                                  color: Colors.amber,
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
                       ),
-                      Text(
-                        'Capacity: ${widget.currentlySelectedPin.currCapacity}/${widget.currentlySelectedPin.maxCapacity}',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      Container(
+                        padding: EdgeInsets.fromLTRB(0, 1, 0, 1),
+                        child: Text(
+                          'Capacity: ${widget.currentlySelectedPin.currCapacity}/${widget.currentlySelectedPin.maxCapacity}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                          ),
+                        ),
                       ),
-                      Text(
-                        widget.currentlySelectedPin.address,
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
-                        overflow: TextOverflow.ellipsis,
+                      Container(
+                        padding: EdgeInsets.fromLTRB(0, 1, 0, 1),
+                        child: Text(
+                          "Hours: ${getTime(widget.currentlySelectedPin.hours['open'])} - ${getTime(widget.currentlySelectedPin.hours['close'])}",
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
               ),
-              Padding(
-                padding: EdgeInsets.all(15),
-                child: IconButton(
-                  icon: Icon(FontAwesomeIcons.directions, color: Colors.lightBlue),
-                  onPressed: () {
-                    launch(
-                        "google.navigation:q=${widget.currentlySelectedPin.location.latitude},${widget.currentlySelectedPin.location.longitude}");
-                  },
+              Container(
+               // color: Colors.red,
+                width: 75,
+                height: 60,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: <Widget>[
+                    IconButton(
+                      icon: Icon(
+                        FontAwesomeIcons.directions,
+                        color: Colors.lightBlue,
+                        size: 40,
+                      ),
+                      onPressed: () {
+                        launch('http://www.google.com/maps/place/${widget.currentlySelectedPin.location.latitude},${widget.currentlySelectedPin.location.longitude}');
+                      },
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -90,5 +134,27 @@ class MapPinPillComponentState extends State<MapPinPillComponent> {
         ),
       ),
     );
+  }
+
+  String getTime(int time) {
+    int temp = (time < 1200) ? time : time - 1200;
+    String res = temp.toString();
+    if (res.length == 1) {
+      res = "12:0" + res;
+    } else if (res.length == 2) {
+      res = "12:" + res;
+    } else if (res.length == 3) {
+      res = res[0] + ':' + res[1] + res[2];
+    } else if (res.length == 4) {
+      res = res[0] + res[1] + ':' + res[2] + res[3];
+    }
+
+    if (time < 1200) {
+      res += " AM";
+    } else {
+      res += " PM";
+    }
+
+    return res;
   }
 }
