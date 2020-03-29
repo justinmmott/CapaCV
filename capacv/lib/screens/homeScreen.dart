@@ -8,10 +8,12 @@ import 'package:capacv/models/mapPinPillComponent.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:location/location.dart';
 import 'package:flappy_search_bar/flappy_search_bar.dart';
+import 'package:capacv/models/filters.dart';
 
 const double CAMERA_ZOOM = 15;
 const double CAMERA_TILT = 0;
 const double CAMERA_BEARING = 0;
+const double FILTER_POS = -800;
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -22,7 +24,10 @@ class _HomeScreenState extends State<HomeScreen> {
   GoogleMapController _controller;
   Set<Marker> _markers = {};
 
+  String filter = "";
+
   double pinPillPosition = -100;
+  double filterPosition = FILTER_POS;
 
   final Firestore _db = Firestore.instance;
 
@@ -113,13 +118,13 @@ class _HomeScreenState extends State<HomeScreen> {
       'assets/map-marker-yellow-coffee.png',
     );
 
-    //LocationData currentLocation = await location.getLocation();
+    //  LocationData currentLocation = await location.getLocation();
 
     CameraPosition initialLocation = CameraPosition(
       zoom: CAMERA_ZOOM,
       bearing: CAMERA_BEARING,
       tilt: CAMERA_TILT,
-      //target: LatLng(currentLocation.latitude, currentLocation.longitude),
+      // target: LatLng(currentLocation.latitude, currentLocation.longitude),
       target: LatLng(34.0749, -118.4415),
     );
 
@@ -142,87 +147,89 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             );
           } else {
-            
             return StreamBuilder<QuerySnapshot>(
-                stream: _db.collection('places').where('type', isEqualTo: 'Cafe').snapshots(),
-                builder: (context, snapshot) {
-                  if (!initLocal.hasData) {
-                    return Center(
-                      child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                            Theme.of(context).primaryColor),
+              stream: _db.collection('places').snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                          Theme.of(context).primaryColor),
+                    ),
+                  );
+                } else {
+                  for (DocumentSnapshot doc in snapshot.data.documents) {
+                    pins.add(PinInformation.fromDb(doc));
+                  }
+                  setMapPins(pins);
+                  return Stack(
+                    children: <Widget>[
+                      GoogleMap(
+                        myLocationButtonEnabled: false,
+                        myLocationEnabled: true,
+                        mapToolbarEnabled: false,
+                        tiltGesturesEnabled: false,
+                        compassEnabled: false,
+                        markers: _markers,
+                        initialCameraPosition: initLocal.data,
+                        onMapCreated: onMapCreated,
+                        onTap: (LatLng location) {
+                          setState(() {
+                            pinPillPosition = -150;
+                            filterPosition = FILTER_POS;
+                          });
+                        },
                       ),
-                    );
-                  } else {
-                    for (DocumentSnapshot doc in snapshot.data.documents) {
-                      pins.add(PinInformation.fromDb(doc));
-                    }
-                    setMapPins(pins);
-                    return Stack(
-                      children: <Widget>[
-                        GoogleMap(
-                          myLocationButtonEnabled: false,
-                          myLocationEnabled: true,
-                          mapToolbarEnabled: false,
-                          tiltGesturesEnabled: false,
-                          compassEnabled: false,
-                          markers: _markers,
-                          initialCameraPosition: initLocal.data,
-                          onMapCreated: onMapCreated,
-                          onTap: (LatLng location) {
-                            setState(() {
-                              pinPillPosition = -150;
-                            });
-                          },
-                        ),
-                        MapPinPillComponent(
-                          pinPillPosition: pinPillPosition,
-                          currentPin: currentPin,
-                        ),
-                        Align(
-                          alignment: Alignment.topCenter,
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 40),
-                            child: SizedBox(
-                              height: 200,
-                              width: 350,
-                              child: Center(
-                                child: Container(
-                                  decoration: new BoxDecoration(
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.grey,
-                                        blurRadius: 20.0,
-                                        spreadRadius: -3.0,
-                                        offset: Offset(
-                                          5,
-                                          5,
-                                        ),
+                      MapPinPillComponent(
+                        pinPillPosition: pinPillPosition,
+                        currentPin: pins[currentPin],
+                      ),
+                      FilterView(filterPosition: filterPosition),
+                      Align(
+                        alignment: Alignment.topCenter,
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 40),
+                          child: SizedBox(
+                            height: 80,
+                            width: 350,
+                            child: Center(
+                              child: Container(
+                                decoration: new BoxDecoration(
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey,
+                                      blurRadius: 20.0,
+                                      spreadRadius: -3.0,
+                                      offset: Offset(
+                                        5,
+                                        5,
                                       ),
-                                    ],
-                                    borderRadius: new BorderRadius.circular(15),
+                                    ),
+                                  ],
+                                  borderRadius: new BorderRadius.circular(15),
+                                ),
+                                child: SearchBar<String>(
+                                  iconActiveColor: Colors.black87,
+                                  onSearch: _search,
+                                  onItemFound: _found,
+                                  textStyle: TextStyle(
+                                    color: Colors.black87,
                                   ),
-                                  child: SearchBar<String>(
-                                    iconActiveColor: Colors.black87,
-                                    onSearch: _search,
-                                    onItemFound: _found,
-                                    textStyle: TextStyle(
-                                      color: Colors.black87,
-                                    ),
-                                    searchBarStyle: SearchBarStyle(
-                                      backgroundColor: Colors.white,
-                                      borderRadius: BorderRadius.circular(15),
-                                    ),
+                                  searchBarStyle: SearchBarStyle(
+                                    backgroundColor: Colors.white,
+                                    borderRadius: BorderRadius.circular(15),
                                   ),
                                 ),
                               ),
                             ),
                           ),
                         ),
-                      ],
-                    );
-                  }
-                });
+                      ),
+                    ],
+                  );
+                }
+              },
+            );
           }
         },
       ),
@@ -293,6 +300,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<List<String>> _search(String searchQuery) {
+    setState(() {
+      filterPosition = 250;
+    });
     List<String> a = ['abcde', 'onefg', 'twoaz', 'threpoe', 'whatup'];
     print("Query: " + searchQuery);
     return Future<List<String>>.value(a);

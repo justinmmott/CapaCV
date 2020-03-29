@@ -7,7 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class MapPinPillComponent extends StatefulWidget {
   final double pinPillPosition;
-  final int currentPin;
+  final PinInformation currentPin;
   MapPinPillComponent({this.pinPillPosition, this.currentPin});
 
   @override
@@ -18,8 +18,8 @@ class MapPinPillComponentState extends State<MapPinPillComponent> {
   Firestore _db = Firestore.instance;
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: _db.collection('places').snapshots(),
+    return StreamBuilder<DocumentSnapshot>(
+      stream: _db.collection('places').document(widget.currentPin.uid).snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return Center(
@@ -30,7 +30,7 @@ class MapPinPillComponentState extends State<MapPinPillComponent> {
           );
         } else {
           PinInformation currPin =
-              PinInformation.fromDb(snapshot.data.documents[widget.currentPin]);
+              PinInformation.fromDb(snapshot.data);
           return AnimatedPositioned(
             bottom: widget.pinPillPosition,
             right: 0,
