@@ -78,23 +78,17 @@ class MapPinPillComponentState extends State<MapPinPillComponent> {
                           children: <Widget>[
                             Container(
                               padding: EdgeInsets.fromLTRB(0, 1, 0, 1),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: <Widget>[
-                                  Text(
-                                    currPin.locationName,
-                                    style: TextStyle(
-                                        fontSize: 16, color: Colors.lightBlue),
-                                  ),
-                                ],
+                              child: Text(
+                                currPin.locationName,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                    fontSize: 15, color: Colors.lightBlue),
                               ),
                             ),
                             Padding(
                               padding: const EdgeInsets.only(right: 4),
                               child: RatingBarIndicator(
-                                itemSize: 13,
+                                itemSize: 12,
                                 rating: currPin.rating,
                                 itemBuilder: (context, _) => Icon(
                                   Icons.star,
@@ -107,7 +101,7 @@ class MapPinPillComponentState extends State<MapPinPillComponent> {
                               child: Text(
                                 'Capacity: ${currPin.currCapacity}/${currPin.maxCapacity}',
                                 style: TextStyle(
-                                  fontSize: 14,
+                                  fontSize: 12,
                                   color: Colors.grey,
                                 ),
                               ),
@@ -117,7 +111,7 @@ class MapPinPillComponentState extends State<MapPinPillComponent> {
                               child: Text(
                                 "Hours: ${getTime(currPin.hours['open'])} - ${getTime(currPin.hours['close'])}",
                                 style: TextStyle(
-                                  fontSize: 14,
+                                  fontSize: 12,
                                   color: Colors.grey,
                                 ),
                               ),
