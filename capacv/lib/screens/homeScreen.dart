@@ -57,8 +57,8 @@ class _HomeScreenState extends State<HomeScreen> {
       zoom: CAMERA_ZOOM,
       bearing: CAMERA_BEARING,
       tilt: CAMERA_TILT,
-      //target: LatLng(currentLocation.latitude, currentLocation.longitude),
-      target: LatLng(34.0749, -118.4415),
+      target: LatLng(currentLocation.latitude, currentLocation.longitude),
+      //target: LatLng(34.0749, -118.4415),
     );
 
     pins = new List<PinInformation>();

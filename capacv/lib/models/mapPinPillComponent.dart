@@ -29,7 +29,8 @@ class MapPinPillComponentState extends State<MapPinPillComponent> {
             ),
           );
         } else {
-          PinInformation currPin = PinInformation.fromDb(snapshot.data.documents[widget.currentPin]);
+          PinInformation currPin =
+              PinInformation.fromDb(snapshot.data.documents[widget.currentPin]);
           return AnimatedPositioned(
             bottom: widget.pinPillPosition,
             right: 0,
@@ -60,9 +61,7 @@ class MapPinPillComponentState extends State<MapPinPillComponent> {
                       width: 55,
                       height: 55,
                       child: ClipOval(
-                        child: (currPin
-                                    .picture ==
-                                "0000")
+                        child: (currPin.picture == "0000")
                             ? Container()
                             : Image.network(
                                 buildPhotoURL(currPin.picture),
@@ -85,23 +84,22 @@ class MapPinPillComponentState extends State<MapPinPillComponent> {
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: <Widget>[
                                   Text(
-                                    currPin
-                                        .locationName,
+                                    currPin.locationName,
                                     style: TextStyle(
                                         fontSize: 16, color: Colors.lightBlue),
                                   ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(right: 4),
-                                    child: RatingBarIndicator(
-                                      itemSize: 18,
-                                      rating: currPin   .rating,
-                                      itemBuilder: (context, _) => Icon(
-                                        Icons.star,
-                                        color: Colors.amber,
-                                      ),
-                                    ),
-                                  )
                                 ],
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(right: 4),
+                              child: RatingBarIndicator(
+                                itemSize: 13,
+                                rating: currPin.rating,
+                                itemBuilder: (context, _) => Icon(
+                                  Icons.star,
+                                  color: Colors.amber,
+                                ),
                               ),
                             ),
                             Container(
