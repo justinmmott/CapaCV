@@ -22,7 +22,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   GoogleMapController _controller;
   Set<Marker> _markers = {};
-  BitmapDescriptor sourceIcon;
+
   double pinPillPosition = -100;
 
   final Firestore _db = Firestore.instance;
@@ -45,10 +45,71 @@ class _HomeScreenState extends State<HomeScreen> {
   List<PinInformation> pins;
   int currentPin = 0;
 
+  BitmapDescriptor redCartIcon;
+  BitmapDescriptor redBookIcon;
+  BitmapDescriptor redFoodIcon;
+  BitmapDescriptor redCoffeeIcon;
+
+  BitmapDescriptor greenCartIcon;
+  BitmapDescriptor greenBookIcon;
+  BitmapDescriptor greenFoodIcon;
+  BitmapDescriptor greenCoffeeIcon;
+
+  BitmapDescriptor yellowCartIcon;
+  BitmapDescriptor yellowBookIcon;
+  BitmapDescriptor yellowFoodIcon;
+  BitmapDescriptor yellowCoffeeIcon;
+
   Future<CameraPosition> setSourceAndDestinationIcons() async {
-    sourceIcon = await BitmapDescriptor.fromAssetImage(
+    redCartIcon = await BitmapDescriptor.fromAssetImage(
       ImageConfiguration(devicePixelRatio: 2.5),
-      'assets/marker.png',
+      'assets/map-marker-red-cart.png',
+    );
+    redBookIcon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(devicePixelRatio: 2.5),
+      'assets/map-marker-red-book.png',
+    );
+    redFoodIcon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(devicePixelRatio: 2.5),
+      'assets/map-marker-red-food.png',
+    );
+    redCoffeeIcon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(devicePixelRatio: 2.5),
+      'assets/map-marker-red-coffee.png',
+    );
+
+    greenCartIcon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(devicePixelRatio: 2.5),
+      'assets/map-marker-green-cart.png',
+    );
+    greenBookIcon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(devicePixelRatio: 2.5),
+      'assets/map-marker-green-book.png',
+    );
+    greenFoodIcon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(devicePixelRatio: 2.5),
+      'assets/map-marker-green-food.png',
+    );
+    greenCoffeeIcon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(devicePixelRatio: 2.5),
+      'assets/map-marker-green-coffee.png',
+    );
+
+    yellowCartIcon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(devicePixelRatio: 2.5),
+      'assets/map-marker-yellow-cart.png',
+    );
+    yellowBookIcon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(devicePixelRatio: 2.5),
+      'assets/map-marker-yellow-book.png',
+    );
+    yellowFoodIcon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(devicePixelRatio: 2.5),
+      'assets/map-marker-yellow-food.png',
+    );
+    yellowCoffeeIcon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(devicePixelRatio: 2.5),
+      'assets/map-marker-yellow-coffee.png',
     );
 
     LocationData currentLocation = await location.getLocation();
@@ -57,8 +118,8 @@ class _HomeScreenState extends State<HomeScreen> {
       zoom: CAMERA_ZOOM,
       bearing: CAMERA_BEARING,
       tilt: CAMERA_TILT,
-      target: LatLng(currentLocation.latitude, currentLocation.longitude),
-      //target: LatLng(34.0749, -118.4415),
+      //target: LatLng(currentLocation.latitude, currentLocation.longitude),
+      target: LatLng(34.0749, -118.4415),
     );
 
     pins = new List<PinInformation>();
@@ -171,14 +232,52 @@ class _HomeScreenState extends State<HomeScreen> {
           pinPillPosition = 20;
         });
       },
-      icon: sourceIcon,
+      icon: iconPicker(
+          pins[i].currCapacity.toDouble() / pins[i].maxCapacity.toDouble(),
+          pins[i].type),
     );
+  }
+
+  BitmapDescriptor iconPicker(double ratio, String type) {
+    if (ratio > .6) {
+      if (type == "Cafe") {
+        return redCoffeeIcon;
+      } else if (type == "Study") {
+        return redBookIcon;
+      } else if (type == "Restaurant") {
+        return redFoodIcon;
+      } else {
+        return redCartIcon;
+      }
+    } else if (ratio > .32) {
+      if (type == "Cafe") {
+        return yellowCoffeeIcon;
+      } else if (type == "Study") {
+        return yellowBookIcon;
+      } else if (type == "Restaurant") {
+        return yellowFoodIcon;
+      } else {
+        return yellowCartIcon;
+      }
+    } else {
+      if (type == "Cafe") {
+        return greenCoffeeIcon;
+      } else if (type == "Study") {
+        return greenBookIcon;
+      } else if (type == "Restaurant") {
+        return greenFoodIcon;
+      } else {
+        return greenCartIcon;
+      }
+    }
   }
 
   bool keepMarker(int i) {}
 
   void setMapPins(List<PinInformation> pins) {
+    print("here is for loop");
     for (int i = 0; i < pins.length; i++) {
+      print("in for loopp $i");
       _markers.add(makeMarker(i));
     }
   }
