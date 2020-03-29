@@ -174,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Padding(
                     padding: const EdgeInsets.only(top: 40),
                     child: SizedBox(
-                      height: 80,
+                      height: 200,
                       width: 350,
                       child: Center(
                         child: Container(
@@ -192,7 +192,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ],
                             borderRadius: new BorderRadius.circular(15),
                           ),
-                          child: SearchBar(
+                          child: SearchBar<String>(
                             iconActiveColor: Colors.black87,
                             onSearch: _search,
                             onItemFound: _found,
@@ -282,12 +282,16 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<List<dynamic>> _search(String searchQuery) {
-    List<String> a = [''];
+  Future<List<String>> _search(String searchQuery) {
+    List<String> a = ['abcde', 'onefg', 'twoaz', 'threpoe', 'whatup'];
+    print("Query: " + searchQuery);
     return Future<List<String>>.value(a);
   }
 
-  Widget _found(dynamic, int) {
-    return Container();
+  Widget _found(String s, int i) {
+    print("Found: " + s);
+    print("Int: ");
+    print(i);
+    return ListTile(title: Text(s));
   }
 }
