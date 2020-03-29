@@ -1,86 +1,154 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+// import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:capacv/models/pinPillInfo.dart';
+import 'package:capacv/models/mapPinPillComponent.dart';
+import 'package:flutter/services.dart' show rootBundle;
+// import 'package:capacv/models/locations.dart' as locations;
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+const double CAMERA_ZOOM = 13;
+const double CAMERA_TILT = 0;
+const double CAMERA_BEARING = 30;
+const LatLng SOURCE_LOCATION = LatLng(42.7477863, -71.1699932);
+const LatLng DEST_LOCATION = LatLng(42.6871386, -71.2143403);
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
+class HomeScreen extends StatefulWidget {
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _HomeScreenState createState() => _HomeScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _HomeScreenState extends State<HomeScreen> {
+  GoogleMapController _controller;
+  Set<Marker> _markers = {};
+  BitmapDescriptor sourceIcon;
+  BitmapDescriptor destinationIcon;
+  double pinPillPosition = -100;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+  String _mapStyle;
+
+  @override
+  void initState() {
+    super.initState();
+
+    rootBundle.loadString('assets/map_style.txt').then((string) {
+      _mapStyle = string;
     });
+  }
+
+  static PinInformation sourcePinInfo = PinInformation(
+    locationName: 'Start Location',
+    location: SOURCE_LOCATION,
+    pinPath: 'assets/marker.png',
+    avatarPath: 'assets/marker.png',
+    labelColor: Colors.blueAccent,
+  );
+  static PinInformation destinationPinInfo = PinInformation(
+    locationName: 'End Location',
+    location: DEST_LOCATION,
+    pinPath: 'assets/marker.png',
+    avatarPath: 'assets/marker.png',
+    labelColor: Colors.purple,
+  );
+
+  PinInformation currentlySelectedPin = sourcePinInfo;
+  CameraPosition initialLocation = CameraPosition(
+    zoom: CAMERA_ZOOM,
+    bearing: CAMERA_BEARING,
+    tilt: CAMERA_TILT,
+    target: SOURCE_LOCATION,
+  );
+
+  Future<BitmapDescriptor> setSourceAndDestinationIcons() async {
+    sourceIcon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(devicePixelRatio: 2.5),
+      'assets/marker.png',
+    );
+
+    destinationIcon = await BitmapDescriptor.fromAssetImage(
+      ImageConfiguration(devicePixelRatio: 2.5),
+      'assets/marker.png',
+    );
+
+    setMapPins();
+
+    return sourceIcon;
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+      body: FutureBuilder<BitmapDescriptor>(
+        future: setSourceAndDestinationIcons(),
+        builder: (context, bitmap) {
+          if (!bitmap.hasData) {
+            return Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(
+                    Theme.of(context).primaryColor),
+              ),
+            );
+          } else {
+            return Stack(
+              children: <Widget>[
+                GoogleMap(
+                  myLocationEnabled: true,
+                  compassEnabled: true,
+                  tiltGesturesEnabled: false,
+                  markers: _markers,
+                  mapType: MapType.normal,
+                  initialCameraPosition: initialLocation,
+                  onMapCreated: onMapCreated,
+                  onTap: (LatLng location) {
+                    setState(() {
+                      pinPillPosition = -100;
+                    });
+                  },
+                ),
+                MapPinPillComponent(
+                  pinPillPosition: pinPillPosition,
+                  currentlySelectedPin: currentlySelectedPin,
+                )
+              ],
+            );
+          }
+        },
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.display1,
-            ),
-          ],
-        ),
+    );
+  }
+
+  void onMapCreated(GoogleMapController controller) {
+    _controller = controller;
+    _controller.setMapStyle(_mapStyle);
+  }
+
+  void setMapPins() {
+    _markers.add(
+      Marker(
+        markerId: MarkerId('sourcePin'),
+        position: SOURCE_LOCATION,
+        onTap: () {
+          setState(() {
+            currentlySelectedPin = sourcePinInfo;
+            pinPillPosition = 0;
+          });
+        },
+        icon: sourceIcon,
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+
+    _markers.add(
+      Marker(
+        markerId: MarkerId('destPin'),
+        position: DEST_LOCATION,
+        onTap: () {
+          setState(() {
+            currentlySelectedPin = destinationPinInfo;
+            pinPillPosition = 0;
+          });
+        },
+        icon: destinationIcon,
+      ),
     );
   }
 }

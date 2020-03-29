@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "365369682324",
+    "firebase_url": "https://capacv-894c9.firebaseio.com",
+    "project_id": "capacv-894c9",
+    "storage_bucket": "capacv-894c9.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:365369682324:android:1dd36f2318cd2f71698781",
+        "android_client_info": {
+          "package_name": "com.example.capacv"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "365369682324-vrtk3f5tmq03bt67duudj0t076bemp07.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCQ4lOkjPK9YocNZcYrRbCeavQRwvLYOwA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "365369682324-vrtk3f5tmq03bt67duudj0t076bemp07.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
