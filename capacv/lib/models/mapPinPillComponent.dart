@@ -3,138 +3,160 @@ import 'package:capacv/models/pinPillInfo.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class MapPinPillComponent extends StatefulWidget {
   final double pinPillPosition;
-  final List<PinInformation> pins;
   final int currentPin;
-  MapPinPillComponent({this.pinPillPosition, this.pins, this.currentPin});
+  MapPinPillComponent({this.pinPillPosition, this.currentPin});
 
   @override
   State<StatefulWidget> createState() => MapPinPillComponentState();
 }
 
 class MapPinPillComponentState extends State<MapPinPillComponent> {
+  Firestore _db = Firestore.instance;
   @override
   Widget build(BuildContext context) {
-    return AnimatedPositioned(
-      bottom: widget.pinPillPosition,
-      right: 0,
-      left: 0,
-      duration: Duration(milliseconds: 200),
-      child: Align(
-        alignment: Alignment.bottomCenter,
-        child: Container(
-          margin: EdgeInsets.all(20),
-          height: 85,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(50)),
-            color: Colors.white,
-            boxShadow: <BoxShadow>[
-              BoxShadow(
-                blurRadius: 20,
-                offset: Offset.zero,
-                color: Colors.grey.withOpacity(0.5),
-              )
-            ],
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Container(
-                margin: EdgeInsets.only(left: 10),
-                width: 55,
-                height: 55,
-                child: ClipOval(
-                  child: (widget.pins[widget.currentPin].picture == "0000") ? Container() : Image.network(
-                    buildPhotoURL(widget.pins[widget.currentPin].picture),
-                    fit: BoxFit.cover,
-                  ),
+    return StreamBuilder<QuerySnapshot>(
+      stream: _db.collection('places').snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return Center(
+            child: CircularProgressIndicator(
+              valueColor:
+                  AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
+            ),
+          );
+        } else {
+          PinInformation currPin = PinInformation.fromDb(snapshot.data.documents[widget.currentPin]);
+          return AnimatedPositioned(
+            bottom: widget.pinPillPosition,
+            right: 0,
+            left: 0,
+            duration: Duration(milliseconds: 200),
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                margin: EdgeInsets.all(20),
+                height: 85,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.all(Radius.circular(50)),
+                  color: Colors.white,
+                  boxShadow: <BoxShadow>[
+                    BoxShadow(
+                      blurRadius: 20,
+                      offset: Offset.zero,
+                      color: Colors.grey.withOpacity(0.5),
+                    )
+                  ],
                 ),
-              ),
-              Expanded(
-                child: Container(
-                  margin: EdgeInsets.only(left: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Container(
-                        padding: EdgeInsets.fromLTRB(0, 1, 0, 1),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Container(
+                      margin: EdgeInsets.only(left: 10),
+                      width: 55,
+                      height: 55,
+                      child: ClipOval(
+                        child: (currPin
+                                    .picture ==
+                                "0000")
+                            ? Container()
+                            : Image.network(
+                                buildPhotoURL(currPin.picture),
+                                fit: BoxFit.cover,
+                              ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Container(
+                        margin: EdgeInsets.only(left: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
-                            Text(
-                              widget.pins[widget.currentPin].locationName,
-                              style: TextStyle(
-                                  fontSize: 16, color: Colors.lightBlue),
+                            Container(
+                              padding: EdgeInsets.fromLTRB(0, 1, 0, 1),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: <Widget>[
+                                  Text(
+                                    currPin
+                                        .locationName,
+                                    style: TextStyle(
+                                        fontSize: 16, color: Colors.lightBlue),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(right: 4),
+                                    child: RatingBarIndicator(
+                                      itemSize: 18,
+                                      rating: currPin   .rating,
+                                      itemBuilder: (context, _) => Icon(
+                                        Icons.star,
+                                        color: Colors.amber,
+                                      ),
+                                    ),
+                                  )
+                                ],
+                              ),
                             ),
-                            Padding(
-                              padding: const EdgeInsets.only(right: 4),
-                              child: RatingBarIndicator(
-                                itemSize: 18,
-                                rating: widget.pins[widget.currentPin].rating,
-                                itemBuilder: (context, _) => Icon(
-                                  Icons.star,
-                                  color: Colors.amber,
+                            Container(
+                              padding: EdgeInsets.fromLTRB(0, 1, 0, 1),
+                              child: Text(
+                                'Capacity: ${currPin.currCapacity}/${currPin.maxCapacity}',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
                                 ),
                               ),
-                            )
+                            ),
+                            Container(
+                              padding: EdgeInsets.fromLTRB(0, 1, 0, 1),
+                              child: Text(
+                                "Hours: ${getTime(currPin.hours['open'])} - ${getTime(currPin.hours['close'])}",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
-                      Container(
-                        padding: EdgeInsets.fromLTRB(0, 1, 0, 1),
-                        child: Text(
-                          'Capacity: ${widget.pins[widget.currentPin].currCapacity}/${widget.pins[widget.currentPin].maxCapacity}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
+                    ),
+                    Container(
+                      // color: Colors.red,
+                      width: 75,
+                      height: 60,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: <Widget>[
+                          IconButton(
+                            icon: Icon(
+                              FontAwesomeIcons.directions,
+                              color: Colors.lightBlue,
+                              size: 40,
+                            ),
+                            onPressed: () {
+                              launch(
+                                  'http://www.google.com/maps/place/${currPin.location.latitude},${currPin.location.longitude}');
+                            },
                           ),
-                        ),
+                        ],
                       ),
-                      Container(
-                        padding: EdgeInsets.fromLTRB(0, 1, 0, 1),
-                        child: Text(
-                          "Hours: ${getTime(widget.pins[widget.currentPin].hours['open'])} - ${getTime(widget.pins[widget.currentPin].hours['close'])}",
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              Container(
-                // color: Colors.red,
-                width: 75,
-                height: 60,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: <Widget>[
-                    IconButton(
-                      icon: Icon(
-                        FontAwesomeIcons.directions,
-                        color: Colors.lightBlue,
-                        size: 40,
-                      ),
-                      onPressed: () {
-                        launch(
-                            'http://www.google.com/maps/place/${widget.pins[widget.currentPin].location.latitude},${widget.pins[widget.currentPin].location.longitude}');
-                      },
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
+            ),
+          );
+        }
+      },
     );
   }
 

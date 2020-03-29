@@ -105,9 +105,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                 ),
                 MapPinPillComponent(
-                    pinPillPosition: pinPillPosition,
-                    pins: pins,
-                    currentPin: currentPin),
+                  pinPillPosition: pinPillPosition,
+                  currentPin: currentPin,
+                ),
                 Align(
                   alignment: Alignment.topCenter,
                   child: Padding(
@@ -116,16 +116,34 @@ class _HomeScreenState extends State<HomeScreen> {
                       height: 80,
                       width: 350,
                       child: Center(
-                        child: SearchBar(
-                          iconActiveColor: Colors.black87,
-                          onSearch: _search,
-                          onItemFound: _found,
-                          textStyle: TextStyle(
-                            color: Colors.black87,
+                        child: Container(
+                          decoration: new BoxDecoration(
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey,
+                                blurRadius:
+                                    20.0, 
+                                spreadRadius:
+                                    -3.0, 
+                                offset: Offset(
+                                  5, 
+                                  5, 
+                                ),
+                              ),
+                            ],
+                            borderRadius: new BorderRadius.circular(15),
                           ),
-                          searchBarStyle: SearchBarStyle(
-                            backgroundColor: Colors.grey,
-                            borderRadius: BorderRadius.circular(15),
+                          child: SearchBar(
+                            iconActiveColor: Colors.black87,
+                            onSearch: _search,
+                            onItemFound: _found,
+                            textStyle: TextStyle(
+                              color: Colors.black87,
+                            ),
+                            searchBarStyle: SearchBarStyle(
+                              backgroundColor: Colors.white,
+                              borderRadius: BorderRadius.circular(15),
+                            ),
                           ),
                         ),
                       ),
