@@ -9,7 +9,7 @@ import json
 import os
 
 # Use a service account
-cred = credentials.Certificate('serviceacct.json')
+cred = credentials.Certificate('firebaseacct.json')
 firebase_admin.initialize_app(cred)
 
 # Set up database
@@ -22,13 +22,13 @@ picture_path = 'data/room_picture.jpg'
 snapshot_period = 3 # in seconds
 
 # Set up room information for database
-database_info_path = 'room_info.json'
-UUID = -1
+database_info_path = 'data/room_info.json'
+UID = -1
 with open(database_info_path, 'r') as info_file:
     room_data = json.load(info_file)
-    UUID = room_data['UUID']
-room_ref = db.collection(u'places').document(UUID)
-print("Room id: ", UUID)
+    UID = room_data['uid']
+room_ref = db.collection(u'places').document(UID)
+print("Room id: ", UID)
 print("Data: ",room_ref.get().to_dict())
 
 while True:
