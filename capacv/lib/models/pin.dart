@@ -1,7 +1,7 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class PinInformation {
+class Pin {
   String picture;
   LatLng location;
   String locationName;
@@ -13,8 +13,8 @@ class PinInformation {
   Map<String, dynamic> hours;
   String type;
 
-  PinInformation.fromDb(DocumentSnapshot place) {
-    //this.picture = place['picture'];
+  Pin.fromDb(DocumentSnapshot place) {
+    this.picture = place['picture'];
     this.location =
         LatLng(place['location'].latitude, place['location'].longitude);
     this.locationName = place['name'];
@@ -22,15 +22,13 @@ class PinInformation {
     this.maxCapacity = place['maxCapacity'];
     this.currCapacity = place['currCapacity'];
     this.address = place['address'];
-    this.rating = (place['rating'] is double)
-        ? place['rating']
-        : place['rating'].toDouble();
+    this.rating = place['rating']?.toDouble();
     this.hours = place['hours'];
     this.type = place['type'];
   }
 
   @override
   String toString() {
-    return "Name: $locationName, uid: $uid";
+    return "Name: $locationName, uid: $uid, type: $type";
   }
 }

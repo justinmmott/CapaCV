@@ -1,13 +1,13 @@
 import 'dart:async';
-import 'package:flappy_search_bar/search_bar_style.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:capacv/models/pinPillInfo.dart';
-import 'package:capacv/models/mapPinPillComponent.dart';
+import 'package:capacv/models/pin.dart';
+import 'package:capacv/models/pinInfo.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:location/location.dart';
-import 'package:flappy_search_bar/flappy_search_bar.dart';
+import 'package:capacv/models/scrollable_exhibition_bottom_sheet.dart';
+import 'package:provider/provider.dart';
 import 'package:capacv/models/filters.dart';
 
 const double CAMERA_ZOOM = 15;
@@ -24,10 +24,11 @@ class _HomeScreenState extends State<HomeScreen> {
   GoogleMapController _controller;
   Set<Marker> _markers = {};
 
-  String filter = "";
-
   double pinPillPosition = -100;
   double filterPosition = FILTER_POS;
+  bool enactedByMarker = false;
+
+  Map<String, bool> markerSelected = new Map();
 
   final Firestore _db = Firestore.instance;
 
@@ -36,14 +37,13 @@ class _HomeScreenState extends State<HomeScreen> {
   String _mapStyle;
 
   List<String> placeNames;
-  
 
   CameraPosition initialLocation = CameraPosition(
-      zoom: CAMERA_ZOOM,
-      bearing: CAMERA_BEARING,
-      tilt: CAMERA_TILT,
-      target: LatLng(34.0749, -118.4415),
-    );
+    zoom: CAMERA_ZOOM,
+    bearing: CAMERA_BEARING,
+    tilt: CAMERA_TILT,
+    target: LatLng(34.0749, -118.4415),
+  );
 
   @override
   void initState() {
@@ -54,10 +54,9 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     location = new Location();
-
   }
 
-  List<PinInformation> pins;
+  List<Pin> pins;
   String uid = "";
 
   BitmapDescriptor redCartIcon;
@@ -75,8 +74,124 @@ class _HomeScreenState extends State<HomeScreen> {
   BitmapDescriptor yellowFoodIcon;
   BitmapDescriptor yellowCoffeeIcon;
 
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<Filters>(
+      builder: (context, filters, child) {
+        return Scaffold(
+          body: FutureBuilder<CameraPosition>(
+            future: setSourceAndDestinationIcons(),
+            builder: (context, initLocal) {
+              if (!initLocal.hasData) {
+                return Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                        Theme.of(context).primaryColor),
+                  ),
+                );
+              } else {
+                return StreamBuilder<QuerySnapshot>(
+                  stream: _db.collection('places').snapshots(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                              Theme.of(context).primaryColor),
+                        ),
+                      );
+                    } else {
+                      if (_markers.isNotEmpty) _markers.clear();
+                      List<DocumentSnapshot> docs =
+                          new List<DocumentSnapshot>();
+
+                      for (String filter in filters.filter) {
+                        docs.addAll(snapshot.data.documents
+                            .where((doc) => doc['type'] == filter));
+                      }
+
+                      if (filters.filter.length == 0) docs = [];
+
+                      for (DocumentSnapshot doc in docs) {
+                        setMapPins(Pin.fromDb(doc));
+                      }
+                      return Stack(
+                        children: <Widget>[
+                          GoogleMap(
+                            myLocationButtonEnabled: false,
+                            myLocationEnabled: true,
+                            mapToolbarEnabled: false,
+                            tiltGesturesEnabled: false,
+                            compassEnabled: false,
+                            markers: _markers,
+                            initialCameraPosition: initLocal.data,
+                            onMapCreated: onMapCreated,
+                            onTap: (LatLng location) {
+                              setState(() {
+                                pinPillPosition = -150;
+                                filterPosition = FILTER_POS;
+                                markerSelected.forEach((key, value) {
+                                  markerSelected[key] = false;
+                                });
+                              });
+                            },
+                            onCameraMoveStarted: () {
+                              setState(() {
+                                if (enactedByMarker) {
+                                  enactedByMarker = false;
+                                } else {
+                                  pinPillPosition = -150;
+                                }
+                              });
+                            },
+                          ),
+                          PinInfo(
+                            pinPillPosition: pinPillPosition,
+                            uid: uid,
+                          ),
+                          ScrollableExhibitionSheet(docs: docs),
+                        ],
+                      );
+                    }
+                  },
+                );
+              }
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  void onMapCreated(GoogleMapController controller) {
+    _controller = controller;
+    _controller.setMapStyle(_mapStyle);
+  }
+
+  void setMapPins(Pin pin) {
+    _markers.add(Marker(
+      markerId: MarkerId(pin.uid),
+      position: pin.location,
+      onTap: () {
+        setState(() {
+          uid = pin.uid;
+          pinPillPosition = MediaQuery.of(context).size.height / 2 + 30;
+          enactedByMarker = true;
+          markerSelected.forEach((key, value) {
+            markerSelected[key] = false;
+          });
+          markerSelected[pin.uid] = true;
+        });
+      },
+      icon: markerSelected[pin.uid] ?? false
+          ? BitmapDescriptor.defaultMarker
+          : iconPicker(pin.currCapacity.toDouble() / pin.maxCapacity.toDouble(),
+              pin.type),
+    ));
+  }
+
   Future<CameraPosition> setSourceAndDestinationIcons() async {
-    if(initialLocation.target.latitude == 34.0749) {
+    if (initialLocation.target.latitude != 34.0749) {
       return initialLocation;
     }
 
@@ -137,117 +252,10 @@ class _HomeScreenState extends State<HomeScreen> {
       zoom: CAMERA_ZOOM,
       bearing: CAMERA_BEARING,
       tilt: CAMERA_TILT,
-      target: LatLng(currentLocation.latitude, currentLocation.longitude),
+      target: LatLng(34.075, -118.4415),
     );
 
     return initialLocation;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: FutureBuilder<CameraPosition>(
-        future: setSourceAndDestinationIcons(),
-        builder: (context, initLocal) {
-          if (!initLocal.hasData) {
-            return Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(
-                    Theme.of(context).primaryColor),
-              ),
-            );
-          } else {
-            return StreamBuilder<QuerySnapshot>(
-              stream: _db.collection('places').snapshots(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return Center(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                          Theme.of(context).primaryColor),
-                    ),
-                  );
-                } else {
-                  for (DocumentSnapshot doc in snapshot.data.documents ) {
-                    setMapPins(PinInformation.fromDb(doc));
-                  }
-                  return Stack(
-                    children: <Widget>[
-                      GoogleMap(
-                        myLocationButtonEnabled: false,
-                        myLocationEnabled: true,
-                        mapToolbarEnabled: false,
-                        tiltGesturesEnabled: false,
-                        compassEnabled: false,
-                        markers: _markers,
-                        initialCameraPosition: initLocal.data,
-                        onMapCreated: onMapCreated,
-                        onTap: (LatLng location) {
-                          setState(() {
-                            pinPillPosition = -150;
-                            filterPosition = FILTER_POS;
-                          });
-                        },
-                      ),
-                      MapPinPillComponent(
-                        pinPillPosition: pinPillPosition,
-                        uid: uid,
-                      ),
-                      FilterView(filterPosition: filterPosition),
-                      Align(
-                        alignment: Alignment.topCenter,
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 40),
-                          child: SizedBox(
-                            height: 80,
-                            width: 350,
-                            child: Center(
-                              child: Container(
-                                decoration: new BoxDecoration(
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.grey,
-                                      blurRadius: 20.0,
-                                      spreadRadius: -3.0,
-                                      offset: Offset(
-                                        5,
-                                        5,
-                                      ),
-                                    ),
-                                  ],
-                                  borderRadius: new BorderRadius.circular(15),
-                                ),
-                                child: SearchBar<String>(
-                                  iconActiveColor: Colors.black87,
-                                  onSearch: _search,
-                                  onItemFound: _found,
-                                  textStyle: TextStyle(
-                                    color: Colors.black87,
-                                  ),
-                                  searchBarStyle: SearchBarStyle(
-                                    backgroundColor: Colors.white,
-                                    borderRadius: BorderRadius.circular(15),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                }
-              },
-            );
-          }
-        },
-      ),
-    );
-  }
-
-  void onMapCreated(GoogleMapController controller) {
-    _controller = controller;
-    _controller.setMapStyle(_mapStyle);
   }
 
   BitmapDescriptor iconPicker(double ratio, String type) {
@@ -258,8 +266,10 @@ class _HomeScreenState extends State<HomeScreen> {
         return redBookIcon;
       } else if (type == "Restaurant") {
         return redFoodIcon;
-      } else {
+      } else if (type == "Grocery") {
         return redCartIcon;
+      } else {
+        return BitmapDescriptor.defaultMarker;
       }
     } else if (ratio > .32) {
       if (type == "Cafe") {
@@ -268,8 +278,10 @@ class _HomeScreenState extends State<HomeScreen> {
         return yellowBookIcon;
       } else if (type == "Restaurant") {
         return yellowFoodIcon;
-      } else {
+      } else if (type == "Grocery") {
         return yellowCartIcon;
+      } else {
+        return BitmapDescriptor.defaultMarker;
       }
     } else {
       if (type == "Cafe") {
@@ -278,42 +290,11 @@ class _HomeScreenState extends State<HomeScreen> {
         return greenBookIcon;
       } else if (type == "Restaurant") {
         return greenFoodIcon;
-      } else {
+      } else if (type == "Grocery") {
         return greenCartIcon;
+      } else {
+        return BitmapDescriptor.defaultMarker;
       }
     }
-  }
-
-  void setMapPins(PinInformation pin) {
-    _markers.add(
-      Marker(
-        markerId: MarkerId(pin.locationName),
-        position: pin.location,
-        onTap: () {
-          setState(() {
-            uid = pin.uid;
-            pinPillPosition = 20;
-          });
-        },
-        icon: iconPicker(
-            pin.currCapacity.toDouble() / pin.maxCapacity.toDouble(), pin.type),
-      ),
-    );
-  }
-
-  Future<List<String>> _search(String searchQuery) {
-    setState(() {
-      filterPosition = 250;
-    });
-    List<String> a = ['abcde', 'onefg', 'twoaz', 'threpoe', 'whatup'];
-    print("Query: " + searchQuery);
-    return Future<List<String>>.value(a);
-  }
-
-  Widget _found(String s, int i) {
-    print("Found: " + s);
-    print("Int: ");
-    print(i);
-    return ListTile(title: Text(s));
   }
 }

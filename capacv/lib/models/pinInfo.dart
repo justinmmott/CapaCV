@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:capacv/models/pinPillInfo.dart';
+import 'package:capacv/models/pin.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class MapPinPillComponent extends StatefulWidget {
+class PinInfo extends StatefulWidget {
   final double pinPillPosition;
   final String uid;
-  MapPinPillComponent({this.pinPillPosition, this.uid});
+  PinInfo({this.pinPillPosition, this.uid});
 
   @override
-  State<StatefulWidget> createState() => MapPinPillComponentState();
+  State<StatefulWidget> createState() => PinInfoState();
 }
 
-class MapPinPillComponentState extends State<MapPinPillComponent> {
+class PinInfoState extends State<PinInfo> {
   Firestore _db = Firestore.instance;
   @override
   Widget build(BuildContext context) {
@@ -22,8 +22,7 @@ class MapPinPillComponentState extends State<MapPinPillComponent> {
       return Container();
     } else {
       return StreamBuilder<DocumentSnapshot>(
-        stream:
-            _db.collection('places').document(widget.uid).snapshots(),
+        stream: _db.collection('places').document(widget.uid).snapshots(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return Center(
@@ -33,7 +32,7 @@ class MapPinPillComponentState extends State<MapPinPillComponent> {
               ),
             );
           } else {
-            PinInformation currPin = PinInformation.fromDb(snapshot.data);
+            Pin currPin = Pin.fromDb(snapshot.data);
             return AnimatedPositioned(
               bottom: widget.pinPillPosition,
               right: 0,
@@ -59,19 +58,19 @@ class MapPinPillComponentState extends State<MapPinPillComponent> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      // Container(
-                      //   margin: EdgeInsets.only(left: 10),
-                      //   width: 55,
-                      //   height: 55,
-                      //   child: ClipOval(
-                      //     child: (currPin.picture == "0000")
-                      //         ? Container()
-                      //         : Image.network(
-                      //             buildPhotoURL(currPin.picture),
-                      //             fit: BoxFit.cover,
-                      //           ),
-                      //   ),
-                      // ),
+                      Container(
+                        margin: EdgeInsets.only(left: 10),
+                        width: 55,
+                        height: 55,
+                        child: ClipOval(
+                          child: (currPin.picture == "0000")
+                              ? Container()
+                              : Image.network(
+                                  buildPhotoURL(currPin.picture),
+                                  fit: BoxFit.cover,
+                                ),
+                        ),
+                      ),
                       Expanded(
                         child: Container(
                           margin: EdgeInsets.only(left: 20),
