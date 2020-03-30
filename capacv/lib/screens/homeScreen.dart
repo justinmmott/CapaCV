@@ -36,6 +36,14 @@ class _HomeScreenState extends State<HomeScreen> {
   String _mapStyle;
 
   List<String> placeNames;
+  
+
+  CameraPosition initialLocation = CameraPosition(
+      zoom: CAMERA_ZOOM,
+      bearing: CAMERA_BEARING,
+      tilt: CAMERA_TILT,
+      target: LatLng(34.0749, -118.4415),
+    );
 
   @override
   void initState() {
@@ -46,10 +54,11 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     location = new Location();
+
   }
 
   List<PinInformation> pins;
-  int currentPin = 0;
+  String uid = "";
 
   BitmapDescriptor redCartIcon;
   BitmapDescriptor redBookIcon;
@@ -67,6 +76,10 @@ class _HomeScreenState extends State<HomeScreen> {
   BitmapDescriptor yellowCoffeeIcon;
 
   Future<CameraPosition> setSourceAndDestinationIcons() async {
+    if(initialLocation.target.latitude == 34.0749) {
+      return initialLocation;
+    }
+
     redCartIcon = await BitmapDescriptor.fromAssetImage(
       ImageConfiguration(devicePixelRatio: 2.5),
       'assets/map-marker-red-cart.png',
@@ -118,17 +131,14 @@ class _HomeScreenState extends State<HomeScreen> {
       'assets/map-marker-yellow-coffee.png',
     );
 
-    //  LocationData currentLocation = await location.getLocation();
+    LocationData currentLocation = await location.getLocation();
 
-    CameraPosition initialLocation = CameraPosition(
+    initialLocation = CameraPosition(
       zoom: CAMERA_ZOOM,
       bearing: CAMERA_BEARING,
       tilt: CAMERA_TILT,
-      // target: LatLng(currentLocation.latitude, currentLocation.longitude),
-      target: LatLng(34.0749, -118.4415),
+      target: LatLng(currentLocation.latitude, currentLocation.longitude),
     );
-
-    pins = new List<PinInformation>();
 
     return initialLocation;
   }
@@ -158,10 +168,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   );
                 } else {
-                  for (DocumentSnapshot doc in snapshot.data.documents) {
-                    pins.add(PinInformation.fromDb(doc));
+                  for (DocumentSnapshot doc in snapshot.data.documents ) {
+                    setMapPins(PinInformation.fromDb(doc));
                   }
-                  setMapPins(pins);
                   return Stack(
                     children: <Widget>[
                       GoogleMap(
@@ -182,7 +191,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       MapPinPillComponent(
                         pinPillPosition: pinPillPosition,
-                        currentPin: pins[currentPin],
+                        uid: uid,
                       ),
                       FilterView(filterPosition: filterPosition),
                       Align(
@@ -241,22 +250,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _controller.setMapStyle(_mapStyle);
   }
 
-  Marker makeMarker(int i) {
-    return Marker(
-      markerId: MarkerId(pins[i].locationName),
-      position: pins[i].location,
-      onTap: () {
-        setState(() {
-          currentPin = i;
-          pinPillPosition = 20;
-        });
-      },
-      icon: iconPicker(
-          pins[i].currCapacity.toDouble() / pins[i].maxCapacity.toDouble(),
-          pins[i].type),
-    );
-  }
-
   BitmapDescriptor iconPicker(double ratio, String type) {
     if (ratio > .6) {
       if (type == "Cafe") {
@@ -291,12 +284,21 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  bool keepMarker(int i) {}
-
-  void setMapPins(List<PinInformation> pins) {
-    for (int i = 0; i < pins.length; i++) {
-      _markers.add(makeMarker(i));
-    }
+  void setMapPins(PinInformation pin) {
+    _markers.add(
+      Marker(
+        markerId: MarkerId(pin.locationName),
+        position: pin.location,
+        onTap: () {
+          setState(() {
+            uid = pin.uid;
+            pinPillPosition = 20;
+          });
+        },
+        icon: iconPicker(
+            pin.currCapacity.toDouble() / pin.maxCapacity.toDouble(), pin.type),
+      ),
+    );
   }
 
   Future<List<String>> _search(String searchQuery) {
